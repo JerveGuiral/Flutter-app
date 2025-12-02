@@ -1,0 +1,10 @@
+0 Running Shoe
+1 High-Heeled Shoes
+2 Slipper
+3 Sandal
+4 Flip-flop
+5 Loafers
+6 Leather Boots
+7 Skate Shoe
+8 Ballet Flat
+9 Oxford Shoe
