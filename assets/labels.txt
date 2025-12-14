@@ -1,10 +1,10 @@
-0 Running Shoe
-1 High-Heeled Shoes
-2 Slipper
-3 Sandal
-4 Flip-flop
-5 Loafers
-6 Leather Boots
-7 Skate Shoe
-8 Ballet Flat
-9 Oxford Shoe
+0 Spotify
+1 Facebook
+2 Instagram
+3 X
+4 Shopee
+5 Lazada
+6 Youtube
+7 Tik-tok
+8 G-cash
+9 Snapchat
