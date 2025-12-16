@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:developer' as devtools;
 
 class FirestoreService {
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -10,16 +11,16 @@ class FirestoreService {
     required String timestamp,
   }) async {
     try {
-      print('Saving prediction: $label - $confidence');
+      devtools.log('Saving prediction: $label - $confidence');
       await _db.collection(_predictionsCollection).add({
         'label': label,
         'confidence': confidence,
         'timestamp': timestamp,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      print('Prediction saved successfully');
+      devtools.log('Prediction saved successfully');
     } catch (e) {
-      print('Firestore error: $e');
+      devtools.log('Firestore error: $e');
       throw Exception('Failed to save prediction: $e');
     }
   }

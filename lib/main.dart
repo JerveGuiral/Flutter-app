@@ -102,34 +102,91 @@ final List<AppClass> appClasses = [
   ),
 ];
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _isDarkMode = true;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'App Identifier',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black87,
-        ),
+      theme: _buildLightTheme(),
+      darkTheme: _buildDarkTheme(),
+      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      home: MainNavigation(
+        isDarkMode: _isDarkMode,
+        onThemeToggle: (isDark) {
+          setState(() {
+            _isDarkMode = isDark;
+          });
+        },
       ),
-      home: const MainNavigation(),
+    );
+  }
+
+  ThemeData _buildLightTheme() {
+    return ThemeData(
+      brightness: Brightness.light,
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF6366F1),
+        brightness: Brightness.light,
+      ),
+      scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+      appBarTheme: const AppBarTheme(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.black87,
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        color: Colors.white,
+      ),
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
+    return ThemeData(
+      brightness: Brightness.dark,
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF818CF8),
+        brightness: Brightness.dark,
+      ),
+      scaffoldBackgroundColor: const Color(0xFF0F172A),
+      appBarTheme: const AppBarTheme(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Color(0xFFDEE2E6),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        color: const Color(0xFF1E293B),
+      ),
     );
   }
 }
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  final bool isDarkMode;
+  final Function(bool) onThemeToggle;
+
+  const MainNavigation({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeToggle,
+  });
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
@@ -140,108 +197,127 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          const HomeScreen(),
+          HomeScreen(
+            isDarkMode: isDark,
+            onAppCardTap: () {
+              setState(() {
+                _selectedIndex = 1;
+              });
+            },
+          ),
           const IdentifierScreen(),
           const HistoryScreen(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+              width: 1,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt),
-            label: 'Identify',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'History',
-          ),
-        ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          elevation: 0,
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          selectedItemColor: const Color(0xFF818CF8),
+          unselectedItemColor: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.camera_alt_outlined),
+              activeIcon: Icon(Icons.camera_alt),
+              label: 'Identify',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history_outlined),
+              activeIcon: Icon(Icons.history),
+              label: 'History',
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final bool isDarkMode;
+  final VoidCallback? onAppCardTap;
+
+  const HomeScreen({
+    super.key,
+    required this.isDarkMode,
+    this.onAppCardTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade50, Colors.blue.shade50],
-          ),
-        ),
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              floating: true,
-              snap: true,
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              expandedHeight: 140,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.deepPurple.shade500,
-                        Colors.blue.shade400,
-                      ],
-                    ),
-                  ),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'App Classifier',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                          ),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            floating: true,
+            snap: true,
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            expandedHeight: 120,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'App Classifier',
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Explore All Categories',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.85),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.3,
-                          ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Explore All Categories',
+                        style: TextStyle(
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.2,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverGrid.builder(
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverGrid.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
@@ -251,13 +327,16 @@ class HomeScreen extends StatelessWidget {
                 itemCount: appClasses.length,
                 itemBuilder: (context, index) {
                   final appClass = appClasses[index];
-                  return AppClassCard(appClass: appClass, index: index);
+                  return AppClassCard(
+                    appClass: appClass,
+                    index: index,
+                    onTap: onAppCardTap,
+                  );
                 },
               ),
             ),
           ],
         ),
-      ),
     );
   }
 }
@@ -265,11 +344,13 @@ class HomeScreen extends StatelessWidget {
 class AppClassCard extends StatefulWidget {
   final AppClass appClass;
   final int index;
+  final VoidCallback? onTap;
 
   const AppClassCard({
     super.key,
     required this.appClass,
     required this.index,
+    this.onTap,
   });
 
   @override
@@ -312,90 +393,93 @@ class _AppClassCardState extends State<AppClassCard>
       scale: _scaleAnimation,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        child: Card(
-          elevation: 12,
-          shadowColor: widget.appClass.color.withOpacity(0.4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: Card(
+            elevation: 12,
+            shadowColor: widget.appClass.color.withValues(alpha: 0.4),
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(28),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  widget.appClass.color.withOpacity(0.15),
-                  widget.appClass.color.withOpacity(0.05),
-                ],
-              ),
-              border: Border.all(
-                color: widget.appClass.color.withOpacity(0.25),
-                width: 1.5,
-              ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        widget.appClass.color.withOpacity(0.25),
-                        widget.appClass.color.withOpacity(0.1),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    widget.appClass.color.withValues(alpha: 0.15),
+                    widget.appClass.color.withValues(alpha: 0.05),
+                  ],
+                ),
+                border: Border.all(
+                  color: widget.appClass.color.withValues(alpha: 0.25),
+                  width: 1.5,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          widget.appClass.color.withValues(alpha: 0.25),
+                          widget.appClass.color.withValues(alpha: 0.1),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: widget.appClass.color.withValues(alpha: 0.25),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.appClass.color.withOpacity(0.25),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+                    child: Icon(
+                      widget.appClass.icon,
+                      size: 40,
+                      color: widget.appClass.color,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      widget.appClass.name,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black87,
+                        letterSpacing: 0.4,
                       ),
-                    ],
-                  ),
-                  child: Icon(
-                    widget.appClass.icon,
-                    size: 40,
-                    color: widget.appClass.color,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    widget.appClass.name,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black87,
-                      letterSpacing: 0.4,
+                      maxLines: 2,
                     ),
-                    maxLines: 2,
                   ),
-                ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Text(
-                    widget.appClass.description,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                      height: 1.45,
-                      fontWeight: FontWeight.w500,
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Text(
+                      widget.appClass.description,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        height: 1.45,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -484,21 +568,25 @@ class _IdentifierScreenState extends State<IdentifierScreen> {
         timestamp: DateTime.now().toIso8601String(),
       ).then((_) {
         devtools.log("Successfully saved to Firestore!");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Saved to Firestore!'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Saved to Firestore!'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }).catchError((e) {
         devtools.log("Error saving to Firestore: $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error saving: $e'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       });
     } catch (e) {
       devtools.log("Error running inference: $e");
@@ -548,282 +636,281 @@ class _IdentifierScreenState extends State<IdentifierScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade50, Colors.blue.shade50],
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.deepPurple.shade50, Colors.blue.shade50],
         ),
-        child: SingleChildScrollView(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 40),
-                  Text(
-                    'App Identifier',
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.deepPurple.shade700,
-                      letterSpacing: 0.5,
-                    ),
+      ),
+      child: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 40),
+                Text(
+                  'App Identifier',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.deepPurple.shade700,
+                    letterSpacing: 0.5,
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Take a photo or upload to identify',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.2,
-                    ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Take a photo or upload to identify',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.2,
                   ),
-                  const SizedBox(height: 40),
-                  Card(
-                    elevation: 12,
-                    shadowColor: Colors.deepPurple.withOpacity(0.3),
-                    shape: RoundedRectangleBorder(
+                ),
+                const SizedBox(height: 40),
+                Card(
+                  elevation: 12,
+                  shadowColor: Colors.deepPurple.withValues(alpha: 0.3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Container(
+                    width: 320,
+                    decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Container(
-                      width: 320,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.deepPurple.shade100.withOpacity(0.5),
-                            Colors.blue.shade100.withOpacity(0.5),
-                          ],
-                        ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.deepPurple.shade100.withValues(alpha: 0.5),
+                          Colors.blue.shade100.withValues(alpha: 0.5),
+                        ],
                       ),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 20),
-                          Container(
-                            height: 280,
-                            width: 280,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
-                                  blurRadius: 12,
-                                  spreadRadius: 2,
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        Container(
+                          height: 280,
+                          width: 280,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 12,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: filePath == null
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 80,
+                                        height: 80,
+                                        decoration: BoxDecoration(
+                                          color: Colors.deepPurple
+                                              .withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                        ),
+                                        child: Icon(
+                                          Icons.image_outlined,
+                                          size: 48,
+                                          color:
+                                              Colors.deepPurple.shade300,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'No image selected',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey.shade700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Tap a button below to start',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.file(
+                                    filePath!,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 28),
+                        if (isLoading)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 4,
+                                    valueColor:
+                                        AlwaysStoppedAnimation<Color>(
+                                      Colors.deepPurple.shade400,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Analyzing image...',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.deepPurple.shade600,
+                                  ),
                                 ),
                               ],
                             ),
-                            child: filePath == null
-                                ? Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          width: 80,
-                                          height: 80,
-                                          decoration: BoxDecoration(
-                                            color: Colors.deepPurple
-                                                .withOpacity(0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                          ),
-                                          child: Icon(
-                                            Icons.image_outlined,
-                                            size: 48,
-                                            color:
-                                                Colors.deepPurple.shade300,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'No image selected',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.grey.shade700,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Tap a button below to start',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.grey.shade500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Image.file(
-                                      filePath!,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                          ),
-                          const SizedBox(height: 28),
-                          if (isLoading)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Column(
+                          )
+                        else if (errorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.red.shade200,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Row(
                                 children: [
-                                  SizedBox(
-                                    width: 50,
-                                    height: 50,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 4,
-                                      valueColor:
-                                          AlwaysStoppedAnimation<Color>(
-                                        Colors.deepPurple.shade400,
+                                  Icon(
+                                    Icons.error_outline,
+                                    color: Colors.red.shade600,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      errorMessage!,
+                                      style: TextStyle(
+                                        color: Colors.red.shade700,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Analyzing image...',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.deepPurple.shade600,
-                                    ),
-                                  ),
                                 ],
+                                ),
                               ),
                             )
-                          else if (errorMessage != null)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade50,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.red.shade200,
-                                    width: 1.5,
+                        else if (label != null && accuracy != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'IDENTIFIED APP',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.deepPurple.shade700,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.2,
                                   ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.error_outline,
-                                      color: Colors.red.shade600,
-                                      size: 20,
+                                const SizedBox(height: 12),
+                                Text(
+                                  label!,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.deepPurple.shade800,
+                                    letterSpacing: 0.6,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Container(
+                                  padding: const EdgeInsets.all(18),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        _getAccuracyColor(accuracy!)
+                                            .withValues(alpha: 0.12),
+                                        _getAccuracyColor(accuracy!)
+                                            .withValues(alpha: 0.04),
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        errorMessage!,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: _getAccuracyColor(accuracy!)
+                                          .withValues(alpha: 0.35),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        'ACCURACY',
                                         style: TextStyle(
-                                          color: Colors.red.shade700,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
+                                          fontSize: 11,
+                                          color: Colors.deepPurple.shade700,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.8,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        '${(accuracy! * 100).toStringAsFixed(1)}%',
+                                        style: TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.w900,
+                                          color: _getAccuracyColor(accuracy!),
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 14),
+                                      ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(8),
+                                        child: LinearProgressIndicator(
+                                          value: accuracy!,
+                                          minHeight: 10,
+                                          backgroundColor:
+                                              Colors.grey.shade300,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                _getAccuracyColor(accuracy!),
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            )
-                          else if (label != null && accuracy != null)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'IDENTIFIED APP',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade600,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 1.2,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    label!,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.deepPurple.shade600,
-                                      letterSpacing: 0.6,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  Container(
-                                    padding: const EdgeInsets.all(18),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: [
-                                          _getAccuracyColor(accuracy!)
-                                              .withOpacity(0.12),
-                                          _getAccuracyColor(accuracy!)
-                                              .withOpacity(0.04),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: _getAccuracyColor(accuracy!)
-                                            .withOpacity(0.35),
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Text(
-                                          'CONFIDENCE',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.grey.shade600,
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: 0.8,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Text(
-                                          '${(accuracy! * 100).toStringAsFixed(1)}%',
-                                          style: TextStyle(
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.w900,
-                                            color: _getAccuracyColor(accuracy!),
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 14),
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: LinearProgressIndicator(
-                                            value: accuracy!,
-                                            minHeight: 10,
-                                            backgroundColor:
-                                                Colors.grey.shade300,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                              _getAccuracyColor(accuracy!),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              ],
                             ),
+                          ),
                           const SizedBox(height: 20),
                         ],
                       ),
@@ -855,8 +942,7 @@ class _IdentifierScreenState extends State<IdentifierScreen> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildActionButton({
@@ -891,8 +977,8 @@ class _IdentifierScreenState extends State<IdentifierScreen> {
           disabledForegroundColor: Colors.white70,
           elevation: isPrimary ? 8 : 6,
           shadowColor: isPrimary
-              ? Colors.deepPurple.withOpacity(0.5)
-              : Colors.blue.withOpacity(0.5),
+              ? Colors.deepPurple.withValues(alpha: 0.5)
+              : Colors.blue.withValues(alpha: 0.5),
         ),
       ),
     );
@@ -914,68 +1000,67 @@ class HistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade50, Colors.blue.shade50],
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.deepPurple.shade50, Colors.blue.shade50],
         ),
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              floating: true,
-              snap: true,
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              expandedHeight: 140,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.deepPurple.shade500,
-                        Colors.blue.shade400,
-                      ],
-                    ),
+      ),
+      child: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            floating: true,
+            snap: true,
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            expandedHeight: 140,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.deepPurple.shade500,
+                      Colors.blue.shade400,
+                    ],
                   ),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'History',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                          ),
+                ),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'History',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'All Your Identifications',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.85),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.3,
-                          ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'All Your Identifications',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.3,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: StreamBuilder(
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: StreamBuilder(
                 stream: FirestoreService.getPredictions(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -1000,7 +1085,7 @@ class HistoryScreen extends StatelessWidget {
                               width: 80,
                               height: 80,
                               decoration: BoxDecoration(
-                                color: Colors.deepPurple.withOpacity(0.1),
+                                color: Colors.deepPurple.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Icon(
@@ -1054,8 +1139,8 @@ class HistoryScreen extends StatelessWidget {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                Colors.deepPurple.withOpacity(0.06),
-                                Colors.blue.withOpacity(0.04),
+                                Colors.deepPurple.withValues(alpha: 0.06),
+                                Colors.blue.withValues(alpha: 0.04),
                               ],
                             ),
                           ),
@@ -1074,7 +1159,7 @@ class HistoryScreen extends StatelessWidget {
                                         style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.w800,
-                                          color: Colors.deepPurple.shade600,
+                                          color: Colors.deepPurple.shade800,
                                           letterSpacing: 0.3,
                                         ),
                                         overflow: TextOverflow.ellipsis,
@@ -1091,15 +1176,15 @@ class HistoryScreen extends StatelessWidget {
                                           end: Alignment.bottomRight,
                                           colors: [
                                             _getConfidenceColor(confidence)
-                                                .withOpacity(0.15),
+                                                .withValues(alpha: 0.15),
                                             _getConfidenceColor(confidence)
-                                                .withOpacity(0.05),
+                                                .withValues(alpha: 0.05),
                                           ],
                                         ),
                                         borderRadius: BorderRadius.circular(10),
                                         border: Border.all(
                                           color: _getConfidenceColor(confidence)
-                                              .withOpacity(0.35),
+                                              .withValues(alpha: 0.35),
                                           width: 1.5,
                                         ),
                                       ),
@@ -1150,8 +1235,7 @@ class HistoryScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Color _getConfidenceColor(double confidence) {

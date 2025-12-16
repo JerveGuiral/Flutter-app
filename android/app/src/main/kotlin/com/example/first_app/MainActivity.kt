@@ -45,7 +45,7 @@ class MainActivity : FlutterActivity() {
 
     private fun loadModel() {
         val assetManager = this.assets
-        val modelInputStream = assetManager.open("model_unquant.tflite")
+        val modelInputStream = assetManager.open("latest_snapchat.tflite")
         val size = modelInputStream.available()
         val buffer = ByteArray(size)
         modelInputStream.read(buffer)
